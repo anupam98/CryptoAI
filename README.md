@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Crypto Portfolio Advisor
 
 A modern, AI-powered crypto portfolio analysis and recommendation platform. This project includes:
@@ -113,3 +114,6 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 ## Contact / Help
 - For questions, open an issue on GitHub.
 - For security concerns, contact the maintainer directly. 
+=======
+# CryptoAI
+>>>>>>> 3ed78a63c4c4449587c0b69358b8a47b9db2c8b5
