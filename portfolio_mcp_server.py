@@ -1,0 +1,220 @@
+import asyncio
+import json
+import os
+from dataclasses import dataclass
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
+from mcp.server.fastmcp import FastMCP, Context
+from sqlalchemy import Column, Float, Integer, String, DateTime, create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker  # Fixed deprecation
+from datetime import datetime
+
+# Debug information
+print(f"[MCP DEBUG] Current working directory: {os.getcwd()}")
+print(f"[MCP DEBUG] Environment DATABASE_URL: {os.getenv('DATABASE_URL', 'Not set')}")
+
+# Use the full path to ensure we're using the same database
+DATABASE_URL = "sqlite:///C:/Users/anupa_gtxnlgd/Downloads/crewai/crewaipratice/portfolios.db"
+print(f"[DEBUG] Using DATABASE_URL: {DATABASE_URL}")
+
+# Check if the database file actually exists
+db_path = "C:/Users/anupa_gtxnlgd/Downloads/crewai/crewaipratice/portfolios.db"
+print(f"[DEBUG] Database file exists: {os.path.exists(db_path)}")
+
+engine = create_engine(DATABASE_URL)
+print(f"[DEBUG] Engine URL: {engine.url}")
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+# Define Portfolio class early to avoid NameError
+class Portfolio(Base):
+    __tablename__ = "portfolios"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String, index=True)
+    holdings = Column(String)        # JSON-encoded list
+    total_val = Column(Float)
+    analysis = Column(String)        # raw Crew analysis
+    recommendation = Column(String)  # raw Crew recommendations
+    risk = Column(String)
+    further_reading = Column(String) # raw Crew risk output
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+# Create tables after model definition
+Base.metadata.create_all(bind=engine)
+
+@dataclass
+class PortfolioContext:
+    db: sessionmaker
+
+@asynccontextmanager
+async def portfolio_lifespan(server: FastMCP) -> AsyncIterator[PortfolioContext]:
+    print("[DEBUG] Entering portfolio_lifespan context manager")
+    try:
+        yield PortfolioContext(db=SessionLocal)
+    finally:
+        print("[DEBUG] Exiting portfolio_lifespan context manager")
+
+mcp = FastMCP(
+    "portfolio-analyzer",
+    description="MCP server for portfolio storage and analysis",
+    lifespan=portfolio_lifespan,
+    host=os.getenv("HOST", "0.0.0.0"),
+    port=int(os.getenv("PORT", "8050"))
+)
+
+def get_latest_portfolio(user_id: str = "1"):
+    print(f"[DEBUG] Querying for user_id: {user_id} (type: {type(user_id)})")
+    with SessionLocal() as session:
+        # First, let's see all portfolios in the database
+        all_portfolios = session.query(Portfolio).all()
+        print(f"[DEBUG] All portfolios in DB: {[(p.id, p.user_id, type(p.user_id)) for p in all_portfolios]}")
+        
+        # Now try the actual query
+        portfolio = session.query(Portfolio).filter(Portfolio.user_id == user_id).order_by(Portfolio.created_at.desc()).first()
+        print(f"[DEBUG] Found portfolio: {portfolio}")
+        return portfolio
+
+@mcp.tool()
+async def get_portfolio_history(ctx: Context, user_id: str = "1") -> str:
+    print(f"[DEBUG] get_portfolio_history called with user_id: {user_id}")
+    db = ctx.request_context.lifespan_context.db()
+    try:
+        portfolios = db.query(Portfolio).filter(Portfolio.user_id == user_id).all()
+        print(f"[DEBUG] Found {len(portfolios)} portfolios for user_id: {user_id}")
+        history = [
+            {
+                "id": p.id,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+                "total_value": p.total_val,
+                "holdings": json.loads(p.holdings)
+            }
+            for p in portfolios
+        ]
+        return json.dumps(history, indent=2) if history else "No portfolios found for this user."
+    finally:
+        db.close()
+
+@mcp.tool()
+async def get_portfolio_details(ctx: Context, portfolio_id: int) -> str:
+    print(f"[DEBUG] get_portfolio_details called with portfolio_id: {portfolio_id}")
+    db = ctx.request_context.lifespan_context.db()
+    try:
+        p = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+        print(f"[DEBUG] Portfolio found: {bool(p)}")
+        if not p:
+            return "Portfolio not found"
+        details = {
+            "id": p.id,
+            "user_id": p.user_id,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+            "total_value": p.total_val,
+            "holdings": json.loads(p.holdings),
+            "analysis": p.analysis,
+            "recommendations": p.recommendation,
+            "risk_assessment": p.risk,
+            "news": json.loads(p.further_reading) if p.further_reading else []
+        }
+        return json.dumps(details, indent=2)
+    finally:
+        db.close()
+
+@mcp.tool()
+async def get_latest_portfolio(ctx: Context, user_id: str = "1") -> str:
+    print(f"[DEBUG] get_latest_portfolio called with user_id: {user_id}")
+    db = ctx.request_context.lifespan_context.db()
+    try:
+        p = db.query(Portfolio).filter(Portfolio.user_id == user_id).order_by(Portfolio.created_at.desc()).first()
+        print(f"[DEBUG] Latest portfolio found: {bool(p)}")
+        if not p:
+            return "No portfolios found for this user."
+        latest = {
+            "id": p.id,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+            "total_value": p.total_val,
+            "holdings": json.loads(p.holdings),
+            "analysis_preview": p.analysis[:200] + "..." if p.analysis and len(p.analysis) > 200 else p.analysis
+        }
+        return json.dumps(latest, indent=2)
+    finally:
+        db.close()
+
+@mcp.tool()
+async def search_portfolios_by_crypto(ctx: Context, crypto_symbol: str, user_id: str = "1") -> str:
+    print(f"[DEBUG] search_portfolios_by_crypto called with crypto_symbol: {crypto_symbol}, user_id: {user_id}")
+    db = ctx.request_context.lifespan_context.db()
+    try:
+        portfolios = db.query(Portfolio).filter(Portfolio.user_id == user_id).all()
+        print(f"[DEBUG] Found {len(portfolios)} portfolios for user_id: {user_id}")
+        matches = []
+        for p in portfolios:
+            holdings = json.loads(p.holdings)
+            for h in holdings:
+                if h.get("crypto", "").upper() == crypto_symbol.upper():
+                    matches.append({
+                        "portfolio_id": p.id,
+                        "created_at": p.created_at.isoformat() if p.created_at else None,
+                        "total_portfolio_value": p.total_val,
+                        "crypto_holding": h
+                    })
+                    break
+        print(f"[DEBUG] Found {len(matches)} matching portfolios for crypto_symbol: {crypto_symbol}")
+        return json.dumps(matches, indent=2) if matches else f"No portfolios found containing {crypto_symbol}"
+    finally:
+        db.close()
+
+@mcp.tool()
+async def get_portfolio_summary(ctx: Context, user_id: str = "1") -> str:
+    print(f"[DEBUG] get_portfolio_summary called with user_id: {user_id}")
+    db = ctx.request_context.lifespan_context.db()
+    try:
+        portfolios = db.query(Portfolio).filter(Portfolio.user_id == user_id).all()
+        print(f"[DEBUG] Found {len(portfolios)} portfolios for user_id: {user_id}")
+        if not portfolios:
+            return "No portfolios found for this user."
+        total_values = [p.total_val for p in portfolios if p.total_val]
+        all_cryptos = set()
+        for p in portfolios:
+            for h in json.loads(p.holdings):
+                all_cryptos.add(h.get("crypto", ""))
+        summary = {
+            "user_id": user_id,
+            "total_portfolios": len(portfolios),
+            "value_stats": {
+                "min": min(total_values),
+                "max": max(total_values),
+                "avg": sum(total_values) / len(total_values),
+                "latest": total_values[-1] if total_values else None
+            },
+            "unique_cryptocurrencies": sorted(list(all_cryptos)),
+            "date_range": {
+                "earliest": min([p.created_at for p in portfolios]).isoformat() if portfolios else None,
+                "latest": max([p.created_at for p in portfolios]).isoformat() if portfolios else None
+            }
+        }
+        return json.dumps(summary, indent=2)
+    finally:
+        db.close()
+
+async def main():
+    transport = os.getenv("TRANSPORT", "sse")
+    if transport == 'sse':
+        await mcp.run_sse_async()
+    else:
+        await mcp.run_stdio_async()
+
+if __name__ == "__main__":
+    # Test the database connection before starting MCP server
+    print("[DEBUG] Testing database connection...")
+    
+    try:
+        result = get_latest_portfolio("1")
+        print(f"[DEBUG] Test result: {result}")
+        if result:
+            print(f"[DEBUG] Portfolio found: ID={result.id}, user_id={result.user_id}, total_val={result.total_value}")
+        else:
+            print("[DEBUG] No portfolio found")
+    except Exception as e:
+        print(f"[DEBUG] Error testing database: {e}")
+    
+    # Then start your MCP server
+    asyncio.run(main())

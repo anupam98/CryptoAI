@@ -67,3 +67,14 @@ class PortfolioTasks:
             agent=agent,
             expected_output="Bullet-point summary of all risk metrics with explanations."
         )
+    
+    def create_related_news_task(self, currency: str, agent) -> Task:
+        return Task(
+            description=dedent(f"""
+                Fetch the latest news articles related to the cryptocurrency "{currency}" 
+                using the CryptoNewsTool. Provide the top 3 headlines, their URLs, and publication dates.
+            """),
+            agent=agent,
+            expected_output="A list of 4 dicts, each with keys: 'title', 'link', 'description' and 'pubDate'."
+        )
+
