@@ -9,3 +9,4 @@ Requests==2.32.4
 SQLAlchemy==2.0.34
 streamlit==1.46.1
 langchain-community
+mcp
