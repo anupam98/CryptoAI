@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from main import main, get_user_portfolios
+from cli_server.main import main, get_user_portfolios
 
 st.set_page_config(page_title="Crypto Portfolio Advisor", page_icon="📊")
 st.title("📊 Crypto Portfolio Advisor")
