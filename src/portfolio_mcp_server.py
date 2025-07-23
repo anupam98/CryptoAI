@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 from mcp.server.fastmcp import FastMCP, Context
 from sqlalchemy import Column, Float, Integer, String, DateTime, create_engine
+from app import crypto
 from sqlalchemy.orm import declarative_base, sessionmaker  # Fixed deprecation
 from datetime import datetime
 import logging
@@ -28,6 +29,26 @@ engine = create_engine(DATABASE_URL)
 logging.debug(f"Engine URL: {engine.url}")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+
+
+def validate_crypto_symbol(crypto_symbol: str) -> str:
+    if not crypto_symbol or not crypto_symbol.strip():
+        raise ValueError("Crypto symbol cannot be empty")
+    cleaned=crypto_symbol.strip().upper()
+    if not re.fullmatch(r"^[A-Z0-9]+$",cleaned):
+        raise ValueError(f"Invalid crypto symbol: {crypto_symbol}")
+    return cleaned
+
+def validate_user_id(uid: str) -> str:
+    if not uid or not uid.isdigit():
+        raise ValueError("user_id must be a string of digits")
+    return uid
+
+def validate_portfolio_id(pid: int) -> int:
+    if not pid or not isinstance(pid, int):
+        raise ValueError("portfolio_id must be an integer")
+    return pid
 
 # Define Portfolio class early to avoid NameError
 class Portfolio(Base):
@@ -63,23 +84,20 @@ mcp = FastMCP(
 )
 
 def get_latest_portfolio(user_id: str = "1"):
+    uid=validate_user_id(user_id)
     logging.debug(f"[DEBUG] Querying for user_id: {user_id} (type: {type(user_id)})")
     with SessionLocal() as session:
-        # First, let's see all portfolios in the database
-        all_portfolios = session.query(Portfolio).all()
-        logging.debug(f"[DEBUG] All portfolios in DB: {[(p.id, p.user_id, type(p.user_id)) for p in all_portfolios]}")
-        
         # Now try the actual query
-        portfolio = session.query(Portfolio).filter(Portfolio.user_id == user_id).order_by(Portfolio.created_at.desc()).first()
+        portfolio = session.query(Portfolio).filter(Portfolio.user_id == uid).order_by(Portfolio.created_at.desc()).first()
         logging.debug(f"[DEBUG] Found portfolio: {portfolio}")
         return portfolio
 
 @mcp.tool()
 async def get_portfolio_history(ctx: Context, user_id: str = "1") -> str:
-    logging.debug(f"[DEBUG] get_portfolio_history called with user_id: {user_id}")
+    uid=validate_user_id(user_id)
     db = ctx.request_context.lifespan_context.db()
     try:
-        portfolios = db.query(Portfolio).filter(Portfolio.user_id == user_id).all()
+        portfolios = db.query(Portfolio).filter(Portfolio.user_id == uid).all()
         logging.debug(f"[DEBUG] Found {len(portfolios)} portfolios for user_id: {user_id}")
         history = [
             {
@@ -96,6 +114,7 @@ async def get_portfolio_history(ctx: Context, user_id: str = "1") -> str:
 
 @mcp.tool()
 async def get_portfolio_details(ctx: Context, portfolio_id: int) -> str:
+    pid=validate_portfolio_id(portfolio_id)
     logging.debug(f"[DEBUG] get_portfolio_details called with portfolio_id: {portfolio_id}")
     db = ctx.request_context.lifespan_context.db()
     try:
@@ -120,10 +139,11 @@ async def get_portfolio_details(ctx: Context, portfolio_id: int) -> str:
 
 @mcp.tool()
 async def get_latest_portfolio(ctx: Context, user_id: str = "1") -> str:
+    uid=validate_user_id(user_id)
     logging.debug(f"[DEBUG] get_latest_portfolio called with user_id: {user_id}")
     db = ctx.request_context.lifespan_context.db()
     try:
-        p = db.query(Portfolio).filter(Portfolio.user_id == user_id).order_by(Portfolio.created_at.desc()).first()
+        p = db.query(Portfolio).filter(Portfolio.user_id == uid).order_by(Portfolio.created_at.desc()).first()
         logging.debug(f"[DEBUG] Latest portfolio found: {bool(p)}")
         if not p:
             return "No portfolios found for this user."
@@ -140,11 +160,13 @@ async def get_latest_portfolio(ctx: Context, user_id: str = "1") -> str:
 
 @mcp.tool()
 async def search_portfolios_by_crypto(ctx: Context, crypto_symbol: str, user_id: str = "1") -> str:
+    crypto_symbol=validate_crypto_symbol(crypto_symbol)
+    uid=validate_user_id(user_id)
     logging.debug(f"[DEBUG] search_portfolios_by_crypto called with crypto_symbol: {crypto_symbol}, user_id: {user_id}")
     db = ctx.request_context.lifespan_context.db()
     try:
-        portfolios = db.query(Portfolio).filter(Portfolio.user_id == user_id).all()
-        logging.debug(f"[DEBUG] Found {len(portfolios)} portfolios for user_id: {user_id}")
+        portfolios = db.query(Portfolio).filter(Portfolio.user_id == uid).all()
+        logging.debug(f"[DEBUG] Found {len(portfolios)} portfolios for user_id: {uid}")
         matches = []
         for p in portfolios:
             holdings = json.loads(p.holdings)
@@ -164,10 +186,11 @@ async def search_portfolios_by_crypto(ctx: Context, crypto_symbol: str, user_id:
 
 @mcp.tool()
 async def get_portfolio_summary(ctx: Context, user_id: str = "1") -> str:
+    uid=validate_user_id(user_id)
     logging.debug(f"[DEBUG] get_portfolio_summary called with user_id: {user_id}")
     db = ctx.request_context.lifespan_context.db()
     try:
-        portfolios = db.query(Portfolio).filter(Portfolio.user_id == user_id).all()
+        portfolios = db.query(Portfolio).filter(Portfolio.user_id == uid).all()
         logging.debug(f"[DEBUG] Found {len(portfolios)} portfolios for user_id: {user_id}")
         if not portfolios:
             return "No portfolios found for this user."
