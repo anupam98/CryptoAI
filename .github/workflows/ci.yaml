@@ -38,11 +38,11 @@ jobs:
         sys.path.insert(0, src_path)
         
         try:
-            from crypto_project.main import main, get_user_portfolios
-            from crypto_project.agents.price_fetcher_agent import get_price_fetcher_agent
-            from crypto_project.agents.news_grabber_agent import get_news_grabber_agent
-            from crypto_project.agents.recommendation_agent import get_recommender_agent
-            from crypto_project.tools.custom_tool import DocumentSearchTool
+            from main import main, get_user_portfolios
+            from agents.price_fetcher_agent import get_price_fetcher_agent
+            from agents.news_grabber_agent import get_news_grabber_agent
+            from agents.recommendation_agent import get_recommender_agent
+            from tools.custom_tool import DocumentSearchTool
             print('✅ All modules import successfully')
         except Exception as e:
             print(f'❌ Import failed: {e}')
