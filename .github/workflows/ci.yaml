@@ -29,8 +29,12 @@ jobs:
     - name: Test imports           # Extra validation
       run: |
         python -c "
+        import sys
+        import os
+        sys.path.append(os.path.join(os.getcwd(), 'src'))
+        
         try:
-            import src.crypto_project.main
+            from crypto_project.main import main, get_user_portfolios
             print('✅ Main module imports successfully')
         except Exception as e:
             print(f'❌ Import failed: {e}')
