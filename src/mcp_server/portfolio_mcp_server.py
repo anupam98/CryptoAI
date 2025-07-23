@@ -6,7 +6,6 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 from mcp.server.fastmcp import FastMCP, Context
 from sqlalchemy import Column, Float, Integer, String, DateTime, create_engine
-from app import crypto
 from sqlalchemy.orm import declarative_base, sessionmaker  # Fixed deprecation
 from datetime import datetime
 import logging
