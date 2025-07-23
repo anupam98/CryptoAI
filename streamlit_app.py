@@ -8,6 +8,6 @@ src_path = os.path.join(current_dir, 'src')
 sys.path.insert(0, src_path)
 
 # Import and run the main app
-from app import *
+from web_application_server.app import *
 
 # This file serves as the entry point for Streamlit Cloud deployment 
