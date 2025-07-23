@@ -1,4 +1,4 @@
-yamlname: Simple CI
+name: Simple CI
 on:
   push:
     branches: [ main, develop ]  # More triggers
