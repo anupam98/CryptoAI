@@ -30,7 +30,7 @@ jobs:
       run: |
         python -c "
         try:
-            import src.main
+            import src.crypto_project.main
             print('✅ Main module imports successfully')
         except Exception as e:
             print(f'❌ Import failed: {e}')
