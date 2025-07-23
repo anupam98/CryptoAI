@@ -1,0 +1,52 @@
+name: Simple CI
+on:
+  push:
+    branches: [ main, develop ]  # More triggers
+  pull_request:
+    branches: [ main ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code          # Named steps
+      uses: actions/checkout@v4
+    - name: Set up Python          # Named steps
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - name: Install dependencies   # Named steps + error handling
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest
+    - name: Run tests              # Conditional logic
+      run: |
+        if [ -d "tests" ]; then
+          pytest tests/
+        else
+          echo "No tests folder found - skipping tests"
+        fi
+    - name: Test imports           # Extra validation
+      run: |
+        python -c "
+        import sys
+        import os
+        
+        # Add the src directory to Python path
+        current_dir = os.getcwd()
+        src_path = os.path.join(current_dir, 'src')
+        sys.path.insert(0, src_path)
+        
+        try:
+            from main import main, get_user_portfolios
+            from agents.price_fetcher_agent import get_price_fetcher_agent
+            from agents.news_grabber_agent import get_news_grabber_agent
+            from agents.recommendation_agent import get_recommender_agent
+            from tools.custom_tool import DocumentSearchTool
+            print('✅ All modules import successfully')
+        except Exception as e:
+            print(f'❌ Import failed: {e}')
+            import traceback
+            traceback.print_exc()
+            exit(1)
+        "
