@@ -29,22 +29,22 @@ jobs:
     - name: Test imports           # Extra validation
       run: |
         python -c "
-      import sys
-      import os
+import sys
+import os
 
-      # Add the src directory to Python path
-      current_dir = os.getcwd()
-      src_path = os.path.join(current_dir, 'src')
-      sys.path.insert(0, src_path)
+# Add the src directory to Python path
+current_dir = os.getcwd()
+src_path = os.path.join(current_dir, 'src')
+sys.path.insert(0, src_path)
 
-      try:
-          from web_application_server.app import *
-          from cli_server.main import *
-          from mcp_server.server import *
-          print('✅ All main modules import successfully')
-      except Exception as e:
-          print(f'❌ Import failed: {e}')
-          import traceback
-          traceback.print_exc()
-          exit(1)
-      "
+try:
+    from web_application_server.app import *
+    from cli_server.main import *
+    from mcp_server.server import *
+    print('✅ All main modules import successfully')
+except Exception as e:
+    print(f'❌ Import failed: {e}')
+    import traceback
+    traceback.print_exc()
+    exit(1)
+"
