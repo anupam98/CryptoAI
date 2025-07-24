@@ -1,6 +1,6 @@
 from crewai import Agent, LLM
 from dotenv import load_dotenv
-from shared.tools.custom_tool import DocumentSearchTool  
+from src.shared.tools.custom_tool import DocumentSearchTool  
 
 load_dotenv()
 

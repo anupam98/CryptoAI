@@ -10,7 +10,12 @@ from sqlalchemy.orm import declarative_base, sessionmaker  # Fixed deprecation
 from datetime import datetime
 import logging
 import re
+import sys
+import os
 
+
+
+# Your imports...
 logging.basicConfig(filename="mcp_server_logs.log",level=logging.DEBUG,format='%(asctime)s:%(levelname)s:%(message)s')
 
 

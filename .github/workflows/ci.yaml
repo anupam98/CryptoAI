@@ -39,15 +39,10 @@ jobs:
         import sys
         import os
         
-        # Add the src directory to Python path
-        current_dir = os.getcwd()
-        src_path = os.path.join(current_dir, 'src')
-        sys.path.insert(0, src_path)
-        
         try:
-            from web_application_server.app import *
-            from cli_server.main import *
-            from mcp_server.portfolio_mcp_server import *
+            from src.web_application_server.app import *
+            from src.cli_server.main import *
+            from src.mcp_server.portfolio_mcp_server import *
             print('✅ All main modules import successfully')
         except Exception as e:
             print(f'❌ Import failed: {e}')
