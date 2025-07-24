@@ -18,12 +18,12 @@ logging.basicConfig(filename="mcp_server_logs.log",level=logging.DEBUG,format='%
 logging.debug(f"Current working directory: {os.getcwd()}")
 
 # Use the full path to ensure we're using the same database
-DATABASE_URL = "sqlite:///C:/Users/anupa_gtxnlgd/Downloads/crewai/crewaipratice/portfolios.db"
+DATABASE_URL = "sqlite:///./portfolios.db"
 logging.debug(f"Using DATABASE_URL: {DATABASE_URL}")
 
 # Check if the database file actually exists
-db_path = "C:/Users/anupa_gtxnlgd/Downloads/crewai/crewaipratice/portfolios.db"
-logging.debug(f"Database file exists: {os.path.exists(db_path)}")
+# db_path = "C:/Users/anupa_gtxnlgd/Downloads/crewai/crewaipratice/portfolios.db"
+# logging.debug(f"Database file exists: {os.path.exists(db_path)}")
 
 engine = create_engine(DATABASE_URL)
 logging.debug(f"Engine URL: {engine.url}")
