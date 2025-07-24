@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
 import requests
 from crewai import Agent, Task, Crew
-from shared.tools.priceChecker import PricecheckTool
-from shared.tools.totalpriceCalculator import PortfolioQuantityCalculator
+from src.shared.tools.priceChecker import PricecheckTool
+from src.shared.tools.totalpriceCalculator import PortfolioQuantityCalculator
 
 # test 
 def get_price_fetcher_agent(llm) -> Agent:

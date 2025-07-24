@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def get_news_grabber_agent(llm: LLM) -> Agent:
-    from shared.tools.newsChecker import NewsCheckTool
-    from shared.tasks.portfolio_project_tasks import PortfolioTasks
+    from src.shared.tools.newsChecker import NewsCheckTool
+    from src.shared.tasks.portfolio_project_tasks import PortfolioTasks
 
     news_checker = NewsCheckTool()
 

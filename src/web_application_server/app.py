@@ -1,6 +1,25 @@
 import streamlit as st
 import json
-from cli_server.main import main, get_user_portfolios
+
+import sys
+import os
+
+# Add the src directory to Python path
+# Now your imports should work
+from src.cli_server.main import main, get_user_portfolios  # Also fixed the typo
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 st.set_page_config(page_title="Crypto Portfolio Advisor", page_icon="📊")
 st.title("📊 Crypto Portfolio Advisor")

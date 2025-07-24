@@ -2,7 +2,7 @@ import requests
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
-from shared.tools.priceChecker import PricecheckTool
+from src.shared.tools.priceChecker import PricecheckTool
 import json
 
 class PortfolioQuantity(BaseModel):
