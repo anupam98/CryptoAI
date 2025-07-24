@@ -1,15 +1,14 @@
 from crewai import LLM, Crew
-from tasks.portfolio_project_tasks import PortfolioTasks
-from agents.price_fetcher_agent import get_price_fetcher_agent
-from agents.portfolio_analysis_agent import get_portfolio_analyser_agent
-from agents.recommendation_agent import get_recommender_agent
-from agents.risk_assesor_agent import get_risk_assesor_agent
-from agents.news_grabber_agent import get_news_grabber_agent
+from shared.tasks.portfolio_project_tasks import PortfolioTasks
+from shared.agents.price_fetcher_agent import get_price_fetcher_agent
+from shared.agents.portfolio_analysis_agent import get_portfolio_analyser_agent
+from shared.agents.recommendation_agent import get_recommender_agent
+from shared.agents.risk_assesor_agent import get_risk_assesor_agent
+from shared.agents.news_grabber_agent import get_news_grabber_agent
 import re
 import json
 from datetime import datetime
 from sqlalchemy import Column, Float, Integer, String, DateTime, create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import declarative_base, sessionmaker  # Changed this line
 import ast
 

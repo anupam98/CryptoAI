@@ -47,7 +47,7 @@ jobs:
         try:
             from web_application_server.app import *
             from cli_server.main import *
-            from mcp_server.server import *
+            from mcp_server.portfolio_mcp_server import *
             print('✅ All main modules import successfully')
         except Exception as e:
             print(f'❌ Import failed: {e}')
