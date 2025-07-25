@@ -1,0 +1,52 @@
+name: Simple CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest
+        
+    - name: Run tests
+      run: |
+        if [ -d "tests" ]; then
+          pytest tests/
+        else
+          echo "No tests folder found - skipping tests"
+        fi
+        
+    - name: Test imports
+      run: |
+        python -c "
+        import sys
+        import os
+        
+        try:
+            from src.web_application_server.app import *
+            from src.cli_server.main import *
+            from src.mcp_server.portfolio_mcp_server import *
+            print('✅ All main modules import successfully')
+        except Exception as e:
+            print(f'❌ Import failed: {e}')
+            import traceback
+            traceback.print_exc()
+            exit(1)
+        "

@@ -1,0 +1,21 @@
+# Python bytecode and cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+
+# Environment variables and secrets
+**/.env
+
+# Databases
+**/*.db
+portfolios.db
+
+# Local test scripts
+**/test_db.py
+
+# Local dev folders
+crewaipratice/
+knowledgebase/  # If it contains private PDFs
