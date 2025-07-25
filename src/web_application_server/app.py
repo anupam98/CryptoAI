@@ -3,7 +3,9 @@ import json
 
 import sys
 import os
+import pysqlite3 as sqlite3
 
+sys.modules['sqlite3'] = sqlite3
 # Add the src directory to Python path
 # Now your imports should work
 from src.cli_server.main import main, get_user_portfolios  # Also fixed the typo
